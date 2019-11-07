@@ -391,13 +391,13 @@ class Client
         $payload = $this->receive($length);
         $msg     = new Message($subject, $payload, $sid, $this);
         if (isset($this->subscriptions[$sid]) === false) {
-            throw Exception::forSubscriptionNotFound($sid);
+            throw new Exception('No subscriptions found for '.$sid);
         }
         $func = $this->subscriptions[$sid];
         if (is_callable($func) === true) {
             $func($msg);
         } else {
-            throw Exception::forSubscriptionCallbackInvalid($sid);
+            throw new Exception('problem with pipe message to callback. Sid: '.$sid);
         }
     }
     /**
@@ -423,14 +423,14 @@ class Client
         $this->send($msg);
         $connectResponse = $this->receive();
         if ($this->isErrorResponse($connectResponse) === true) {
-            throw Exception::forFailedConnection($connectResponse);
+            throw new Exception('Error response found: '.$connectResponse);
         } else {
             $this->processServerInfo($connectResponse);
         }
         $this->ping();
         $pingResponse = $this->receive();
         if ($this->isErrorResponse($pingResponse) === true) {
-            throw Exception::forFailedPing($pingResponse);
+            throw new Exception('Error response found: '.$pingResponse);
         }
     }
     /**
@@ -552,7 +552,7 @@ class Client
      *
      * @param integer $quantity Number of messages to wait for.
      *
-     * @return Connection $connection Connection object
+     * @return Client $connection Connection object
      * @throws \Exception
      */
     public function wait($quantity = 0)
@@ -562,7 +562,7 @@ class Client
         $info  = stream_get_meta_data($this->streamSocket);
         while (is_resource($this->streamSocket) && !feof($this->streamSocket) && empty($info['timed_out'])) {
             if ((time() - $start_time) > $this->waitingMessageTimeout) {
-                throw new TimeOutWaitingMessage("Timeout waiting message");
+                throw new Exception("Timeout waiting message");
             }
             $line = $this->receive();
             if ($line === false) {
