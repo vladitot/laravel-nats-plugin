@@ -1,0 +1,15 @@
+{
+    "name": "vladitot/nats-plugin",
+    "description": "Nats Plugin for laravel",
+    "type": "library",
+    "require": {
+        "symfony/process": "^4.3"
+    },
+    "authors": [
+        {
+            "name": "Владимир Закотнев",
+            "email": "vladitot@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable"
+}
