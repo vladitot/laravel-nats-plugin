@@ -3,7 +3,8 @@
     "description": "Nats Plugin for laravel",
     "type": "library",
     "require": {
-        "symfony/process": "^4.3"
+        "symfony/process": "^4.3",
+        "ircmaxell/random-lib": "^1.2"
     },
     "authors": [
         {
@@ -11,5 +12,11 @@
             "email": "vladitot@gmail.com"
         }
     ],
-    "minimum-stability": "stable"
+    "minimum-stability": "stable",
+
+    "autoload": {
+        "psr-4": {
+            "Vladitot\\Nats\\": "src/"
+        }
+    }
 }
