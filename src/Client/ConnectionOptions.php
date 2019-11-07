@@ -95,6 +95,7 @@ class ConnectionOptions
      *
      */
     private $pingMinInterval = 5;
+
     /**
      * ConnectionOptions constructor.
      *
@@ -112,6 +113,7 @@ class ConnectionOptions
      * </code>
      *
      * @param Traversable|array $options The connection options.
+     * @throws Exception
      */
     public function __construct($options = null)
     {

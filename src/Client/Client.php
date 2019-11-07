@@ -289,6 +289,7 @@ class Client
      */
     private function send($payload)
     {
+        $payload = json_encode($payload);
         $msg = $payload."\r\n";
         $len = strlen($msg);
         while (true) {
