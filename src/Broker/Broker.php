@@ -27,6 +27,10 @@ class Broker
         $this->client = new Client($options);
     }
 
+    /**
+     * @param int $messagesCountToProcess
+     * @throws \Exception
+     */
     public function waitForNewMessages($messagesCountToProcess=0) {
         $this->client->wait($messagesCountToProcess);
     }
@@ -82,5 +86,20 @@ class Broker
     public function request($subject, $payload, \Closure $callback)
     {
         $this->client->request($subject, $payload, $callback);
+    }
+
+    /**
+     * Publish publishes the data argument to the given subject.
+     *
+     * @param string $subject Message topic.
+     * @param string $payload Message data.
+     * @param string $inbox Message inbox.
+     *
+     * @return void
+     *
+     * @throws \Exception
+     */
+    public function publish($subject, $payload = null, $inbox = null){
+        $this->client->publish($subject, $payload, $inbox);
     }
 }
