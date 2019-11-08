@@ -24,15 +24,6 @@ class Broker
      */
     public function __construct(ConnectionOptions $options)
     {
-        new ConnectionOptions(
-            [
-                'user' => getenv('USER'),
-                'pass' => getenv('PASS'),
-                'host' => getenv('HOST'),
-                'token' => getenv('TOKEN')
-            ]
-        );
-
         $this->client = new Client($options);
     }
 
