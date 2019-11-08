@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Vladitot\Nats;
+namespace Vladitot\Nats\Client;
 
 
 use Exception;

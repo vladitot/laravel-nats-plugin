@@ -1,5 +1,5 @@
 <?php
-namespace Vladitot\Nats;
+namespace Vladitot\Nats\Client;
 /**
  * Class Php71RandomGenerator
  *

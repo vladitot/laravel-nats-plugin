@@ -4,7 +4,7 @@
 namespace Vladitot\Nats\Broker;
 
 
-use Vladitot\Nats\ConnectionOptions;
+use Vladitot\Nats\Client\ConnectionOptions;
 
 class BrokerFactory
 {
@@ -24,7 +24,8 @@ class BrokerFactory
             'host' => $host,
             'token' => $token
         ]);
-
-        return new Broker($options);
+        $broker = new Broker($options);
+        $broker->connect();
+        return $broker;
     }
 }

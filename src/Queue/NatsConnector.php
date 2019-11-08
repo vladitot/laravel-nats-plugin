@@ -15,9 +15,21 @@ class NatsConnector implements ConnectorInterface
      *
      * @param array $config
      * @return \Illuminate\Contracts\Queue\Queue
+     * @throws \Exception
      */
     public function connect(array $config)
     {
-        return BrokerFactory::make($config['host'], $config['user'], $config['password'], $config['token']);
+        $connectionConfig = config('database.nats.'.$config['connection']);
+        $queue = new NatsQueue();
+        $queue->setBroker(
+            BrokerFactory::make(
+                $connectionConfig['host'],
+                $connectionConfig['user'],
+                $connectionConfig['password'],
+                $connectionConfig['token']
+            )
+        );
+        $queue->getBroker()->queueSubscribe($config['queue'], function($message) {});
+        return $queue;
     }
 }

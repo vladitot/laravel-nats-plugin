@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Vladitot\Nats;
+namespace Vladitot\Nats\Client;
 
 use RandomLib\Factory;
 use RandomLib\Generator;
@@ -293,7 +293,7 @@ class Client
      */
     private function send($payload)
     {
-        $payload = json_encode($payload);
+//        $payload = json_encode($payload);
         $msg = $payload."\r\n";
         $len = strlen($msg);
         while (true) {

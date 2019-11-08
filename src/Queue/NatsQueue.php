@@ -91,4 +91,20 @@ class NatsQueue extends Queue implements \Illuminate\Contracts\Queue\Queue
     {
         return $this->broker->getRawMessage(1, $queue);
     }
+
+    /**
+     * @param Broker $broker
+     */
+    public function setBroker(Broker $broker): void
+    {
+        $this->broker = $broker;
+    }
+
+    /**
+     * @return Broker
+     */
+    public function getBroker(): Broker
+    {
+        return $this->broker;
+    }
 }

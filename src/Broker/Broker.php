@@ -4,8 +4,8 @@
 namespace Vladitot\Nats\Broker;
 
 
-use Vladitot\Nats\Client;
-use Vladitot\Nats\ConnectionOptions;
+use Vladitot\Nats\Client\Client;
+use Vladitot\Nats\Client\ConnectionOptions;
 
 class Broker
 {
@@ -103,7 +103,19 @@ class Broker
         $this->client->publish($subject, $payload, $inbox);
     }
 
+    /**
+     * @param int $messagesCountToProcess
+     * @param null $priorityChannel
+     * @throws \Exception
+     */
     public function getRawMessage($messagesCountToProcess=0, $priorityChannel=null) {
         $message = $this->client->wait($messagesCountToProcess, $priorityChannel, true);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function connect() {
+        $this->client->connect();
     }
 }
