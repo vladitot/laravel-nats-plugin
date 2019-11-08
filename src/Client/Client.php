@@ -378,11 +378,12 @@ class Client
      * @param string $line Message command from Nats.
      *
      * @param null $prioritySubjectToReceive
-     * @return             void
+     * @param bool $getRaw
+     * @return Message|void
      * @throws Exception If subscription not found.
      * @codeCoverageIgnore
      */
-    private function handleMSG($line, $prioritySubjectToReceive = null)
+    private function handleMSG($line, $prioritySubjectToReceive = null, $getRaw = false)
     {
         $parts   = explode(' ', $line);
         $subject = null;
@@ -400,6 +401,9 @@ class Client
         if (isset($this->subscriptions[$sid]) === false) {
             throw new Exception('No subscriptions found for '.$sid);
         }
+        if ($getRaw) {
+            return $msg;
+        }
         if ($prioritySubjectToReceive===null) {
             $this->callMessageHandler($msg);
         } else {
@@ -411,6 +415,9 @@ class Client
         }
     }
 
+    /**
+     * @param Message $message
+     */
     public function addMessageToBackPack(Message $message) {
         array_push($this->messagesBackpack, $message);
     }
@@ -595,10 +602,11 @@ class Client
      * @param integer $quantity Number of messages to wait for.
      *
      * @param null $prioritySubjectToReceive
+     * @param bool $getRaw dont send message to callback
      * @return Client $connection Connection object
      * @throws Exception
      */
-    public function wait($quantity = 0, $prioritySubjectToReceive=null)
+    public function wait($quantity = 0, $prioritySubjectToReceive=null, $getRaw = false)
     {
         $start_time = time();
         $count = 0;
@@ -606,7 +614,11 @@ class Client
         while (count($this->messagesBackpack)>0) {
             if ($quantity!==0 && $count>=$quantity) break;
             $message = $this->getMessageFromBackPack();
-            $this->handleMSG($message, $prioritySubjectToReceive);
+            if ($getRaw) {
+                return $this->handleMSG($message, $prioritySubjectToReceive, $getRaw);
+            } else {
+                $this->handleMSG($message, $prioritySubjectToReceive, $getRaw);
+            }
             $count++;
         }
 
@@ -624,7 +636,11 @@ class Client
             }
             if (strpos($line, 'MSG') === 0) {
                 $count++;
-                $this->handleMSG($line, $prioritySubjectToReceive);
+                if ($getRaw) {
+                    return $this->handleMSG($message, $prioritySubjectToReceive, $getRaw);
+                } else {
+                    $this->handleMSG($message, $prioritySubjectToReceive, $getRaw);
+                }
                 if (($quantity !== 0) && ($count >= $quantity)) {
                     return $this;
                 }

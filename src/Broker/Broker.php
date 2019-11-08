@@ -31,8 +31,8 @@ class Broker
      * @param int $messagesCountToProcess
      * @throws \Exception
      */
-    public function waitForNewMessages($messagesCountToProcess=0) {
-        $this->client->wait($messagesCountToProcess);
+    public function waitForNewMessages($messagesCountToProcess=0, $priorityChannel=null) {
+        $this->client->wait($messagesCountToProcess, $priorityChannel);
     }
 
     /**
@@ -101,5 +101,9 @@ class Broker
      */
     public function publish($subject, $payload = null, $inbox = null){
         $this->client->publish($subject, $payload, $inbox);
+    }
+
+    public function getRawMessage($messagesCountToProcess=0, $priorityChannel=null) {
+        $message = $this->client->wait($messagesCountToProcess, $priorityChannel, true);
     }
 }

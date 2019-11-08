@@ -16,7 +16,7 @@ class BrokerFactory
      * @return Broker
      * @throws \Exception
      */
-    public function make($host = 'localhost', $user = 'user', $pass = 'pass', $token = '')
+    public static function make($host = 'localhost', $user = 'user', $pass = 'pass', $token = '')
     {
         $options = new ConnectionOptions([
             'user' => $user,
