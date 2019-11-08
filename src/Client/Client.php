@@ -10,6 +10,8 @@ use Exception;
 
 class Client
 {
+
+    private $messagesBackpack = [];
     /**
      * @var int
      * для отслеживания времени последнего отправленного сообщения
@@ -258,10 +260,12 @@ class Client
     {
         return $this->serverInfo->getServerID();
     }
+
     /**
      * Constructor.
      *
      * @param ConnectionOptions $options Connection options object.
+     * @throws Exception
      */
     public function __construct(ConnectionOptions $options = null)
     {
@@ -367,16 +371,18 @@ class Client
     {
         $this->send('PONG');
     }
+
     /**
      * Handles MSG command.
      *
      * @param string $line Message command from Nats.
      *
+     * @param null $prioritySubjectToReceive
      * @return             void
-     * @throws             Exception If subscription not found.
+     * @throws Exception If subscription not found.
      * @codeCoverageIgnore
      */
-    private function handleMSG($line)
+    private function handleMSG($line, $prioritySubjectToReceive = null)
     {
         $parts   = explode(' ', $line);
         $subject = null;
@@ -394,13 +400,35 @@ class Client
         if (isset($this->subscriptions[$sid]) === false) {
             throw new Exception('No subscriptions found for '.$sid);
         }
-        $func = $this->subscriptions[$sid];
-        if (is_callable($func) === true) {
-            $func($msg);
+        if ($prioritySubjectToReceive===null) {
+            $this->callMessageHandler($msg);
         } else {
-            throw new Exception('problem with pipe message to callback. Sid: '.$sid);
+            if ($subject==$prioritySubjectToReceive) {
+                $this->callMessageHandler($msg);
+            } else {
+                $this->addMessageToBackPack($msg);
+            }
         }
     }
+
+    public function addMessageToBackPack(Message $message) {
+        array_push($this->messagesBackpack, $message);
+    }
+
+    /**
+     * Simple call message handler. Usefull, if message is in the backpack.
+     * @param Message $message
+     * @throws Exception
+     */
+    private function callMessageHandler(Message $message) {
+        $func = $this->subscriptions[$message->getSid()];
+        if (is_callable($func) === true) {
+            $func($message);
+        } else {
+            throw new Exception('problem with pipe message to callback. Sid: '.$message->getSid());
+        }
+    }
+
     /**
      * Connect to server.
      *
@@ -469,7 +497,7 @@ class Client
         );
         $this->unsubscribe($sid, 1);
         $this->publish($subject, $payload, $inbox);
-        //$this->wait(1);
+        $this->wait(1, $subject);
     }
     /**
      * Subscribes to an specific event given a subject.
@@ -548,18 +576,40 @@ class Client
         $this->send($msg."\r\n".$payload);
         $this->pubs += 1;
     }
+
+    /**
+     * Get one message from backpack (already received)
+     * @return Message
+     */
+    private function getMessageFromBackPack(): Message
+    {
+        $key = array_key_first($this->messagesBackpack);
+        $message = $this->messagesBackpack[$key];
+        unset($this->messagesBackpack[$key]);
+        return $message;
+    }
+
     /**
      * Waits for messages.
      *
      * @param integer $quantity Number of messages to wait for.
      *
+     * @param null $prioritySubjectToReceive
      * @return Client $connection Connection object
-     * @throws \Exception
+     * @throws Exception
      */
-    public function wait($quantity = 0)
+    public function wait($quantity = 0, $prioritySubjectToReceive=null)
     {
         $start_time = time();
         $count = 0;
+
+        while (count($this->messagesBackpack)>0) {
+            if ($quantity!==0 && $count>=$quantity) break;
+            $message = $this->getMessageFromBackPack();
+            $this->handleMSG($message, $prioritySubjectToReceive);
+            $count++;
+        }
+
         $info  = stream_get_meta_data($this->streamSocket);
         while (is_resource($this->streamSocket) && !feof($this->streamSocket) && empty($info['timed_out'])) {
             if ((time() - $start_time) > $this->waitingMessageTimeout) {
@@ -574,7 +624,7 @@ class Client
             }
             if (strpos($line, 'MSG') === 0) {
                 $count++;
-                $this->handleMSG($line);
+                $this->handleMSG($line, $prioritySubjectToReceive);
                 if (($quantity !== 0) && ($count >= $quantity)) {
                     return $this;
                 }
