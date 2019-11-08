@@ -3,7 +3,6 @@
     "description": "Nats Plugin for laravel",
     "type": "library",
     "require": {
-        "symfony/process": "^4.3",
         "ircmaxell/random-lib": "^1.2"
     },
     "authors": [
