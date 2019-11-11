@@ -4,6 +4,7 @@
 namespace Vladitot\Nats\Broker;
 
 
+use Nats\Message;
 use Vladitot\Nats\Client\Client;
 use Vladitot\Nats\Client\ConnectionOptions;
 
@@ -60,7 +61,7 @@ class Broker
     }
 
     /**
-     * Unsubscribe from a event given a subject.
+     * Simply unsubscribe from a event given a subject.
      *
      * @param $subject
      * @param integer $quantity Quantity of messages.
@@ -100,22 +101,45 @@ class Broker
      * @throws \Exception
      */
     public function publish($subject, $payload = null, $inbox = null){
+        $payload = json_encode($payload);
         $this->client->publish($subject, $payload, $inbox);
     }
 
     /**
      * @param int $messagesCountToProcess
      * @param null $priorityChannel
+     * @return Client|Message
      * @throws \Exception
      */
     public function getRawMessage($messagesCountToProcess=0, $priorityChannel=null) {
         $message = $this->client->wait($messagesCountToProcess, $priorityChannel, true);
+        return $message;
     }
 
     /**
      * @throws \Exception
      */
-    public function connect() {
+    public function connect($debug = true) {
+        $this->client->setDebug($debug);
         $this->client->connect();
+    }
+
+
+    /**
+     * @throws \Exception
+     */
+    public function ping()
+    {
+        $this->client->ping();
+    }
+
+
+    /**
+     * @param $queue
+     * @return bool
+     */
+    public function isSubscribed($queue)
+    {
+        return isset($this->subscriptions[$queue]);
     }
 }

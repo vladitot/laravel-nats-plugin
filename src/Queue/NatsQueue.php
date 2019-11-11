@@ -89,7 +89,17 @@ class NatsQueue extends Queue implements \Illuminate\Contracts\Queue\Queue
      */
     public function pop($queue = null)
     {
-        return $this->broker->getRawMessage(1, $queue);
+        $this->broker->ping();
+        if (!$this->broker->isSubscribed($queue)) {
+            $this->broker->subscribe($queue, function() {});
+        }
+        $message = $this->broker->getRawMessage(1, $queue);
+        if ($message!==null) {
+            $job = unserialize($message->getBody());
+            return $job;
+        } else {
+            return null;
+        }
     }
 
     /**

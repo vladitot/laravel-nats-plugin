@@ -21,7 +21,7 @@ class Client
      * @var int
      * для прерывания времени ожидания сообщения
      */
-    private $waitingMessageTimeout = 60;
+    private $waitingMessageTimeout = 1;
     /**
      * @var int $lastPingTime
      *
@@ -303,10 +303,10 @@ class Client
             }
             $written = @fwrite($this->streamSocket, $msg);
             if ($written === false) {
-                throw new \Exception('Error sending data');
+                throw new \Exception('Error sending data (Error writing data to the connection)');
             }
             if ($written === 0) {
-                throw new \Exception('Broken pipe or closed connection');
+                throw new \Exception('Broken pipe or closed connection (reset by peer)');
             }
             $len = ($len - $written);
             if ($len > 0) {
@@ -603,7 +603,7 @@ class Client
      *
      * @param null $prioritySubjectToReceive
      * @param bool $getRaw dont send message to callback
-     * @return Client $connection Connection object
+     * @return Client|Message $connection Connection object
      * @throws Exception
      */
     public function wait($quantity = 0, $prioritySubjectToReceive=null, $getRaw = false)
